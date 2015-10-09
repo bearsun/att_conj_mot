@@ -1,0 +1,24 @@
+random intial directions
+same speed
+
++- 0 ~1/12 pi (7 opts)
+
+12 hz adding new direction vectors
+-20 -15 -10 0 10 15 20 degrees
+for 0 ⅓ of time
+
+120 pixels for min distance in 1024 X 860 resolution screen
+
+diameter of the ball 80 pixels radius
+
+ball speed 12 pixels
+
+cue duration 2s
+tracking duration 14s
+testing 2s
+feedback 2s
+
+additional fobia zoom: 120 pixels
+
+when colliding: each ball change the direction by 30 degree
+
