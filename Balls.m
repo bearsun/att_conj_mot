@@ -58,20 +58,23 @@ classdef Balls<handle
     properties(Constant=true)
         dtime = 2/60; %speed of updating screen
         radius = 40; % constant radius
-        speed = 80; % constant speed per frame
+        speed = 160; % constant speed per frame
         % use color RGBY, represented by 1:4
         % each col corresponding to a quandrant
-        % so we should have 24 different combination of colors for balls
+        % so we should have 24 different combination of colors for ball
         colors = perms(1:4);
         ncolors = size(Balls.colors,1);
-        additionalgap = 70; % 140 pixels, minimum distance between balls,
+        additionalgap = 40; % 140 pixels, minimum distance between balls,
         % not including radius
         softcap = Balls.radius * 2 + Balls.additionalgap;
-        %        angleturn = pi / 6;
+        hardcap = Balls.radius * 2 + Balls.additionalgap / 6;
+        absolutecap = Balls.radius * 2;
+        angleturn = pi / 12;
         jitterfreq = 100; % add random jitter at 3 Hz (every 10 flips on a
         % 30 Hz Screen
         %        jitterspeed = 100; % the speed to add
-        jitterangles = ((-1:.25:1)* pi / 9)';
+        njitter = 2;
+        jitterangles = ((-1:.25:1)* pi / 12)';
         XMIN = 0;
         YMIN = 0;
         XMAX = 1024;
@@ -173,12 +176,13 @@ classdef Balls<handle
             end
         end
         %Declaring function to move the balls
-        function moveBall(this, JITTER)
+        function b = moveBall(this, JITTER)
             dt = Balls.dtime;
             % jitter the speed
             if JITTER
                 jitterdirection(this);
             end
+
             %Predicting ball position without considering collision
             [xf,yf]=predictposition(this,dt);
             %Finding collision
@@ -212,6 +216,8 @@ classdef Balls<handle
             %Updating ball position
             this.x=xf;
             this.y=yf;
+            d = pdist([this.x,this.y]);
+            b = any(d < Balls.absolutecap);
         end
     end
     %Declaring private method
@@ -226,16 +232,18 @@ classdef Balls<handle
         function jitterdirection(this)
             % current speed angle
             spangle = atan2(this.u, this.v);
+            % draw 2 balls to jitter
+            kjitter = randi(size(spangle,1),[Balls.njitter,1]);
             % randomly draw a jitterangle (relative to current angle)
-            addangle = this.jitterangles(randi(numel(this.jitterangles),size(spangle)));
+            addangle = Balls.jitterangles(randi(numel(Balls.jitterangles),[Balls.njitter,1]));
             % angle to add speed
-            theta = spangle + addangle;
+            theta = spangle(kjitter) + addangle;
 %             % add speed
 %             newu = this.u + Balls.jitterspeed .* sin(newangle);
 %             newv = this.v + Balls.jitterspeed .* cos(newangle);
 %             % change angle
 %             [~, theta] = Balls.uv2speed(newu, newv);
-            [this.u,this.v] = Balls.speed2uv(Balls.speed,theta);
+            [this.u(kjitter),this.v(kjitter)] = Balls.speed2uv(Balls.speed,theta);
         end
         %Declaring function to generate random ball
         function [xr,yr,theta,cr]=generateball(this,cr)
@@ -276,29 +284,68 @@ classdef Balls<handle
         function [uf1,vf1,uf2,vf2]=collide(x1,y1,u1,v1,x2,y2,u2,v2)
             %Finding normal angle between two balls
             theta=atan2(y2-y1,x2-x1);
-            d = norm([x1-x2,y1-y2]) - 2 * Balls.radius;
-            dt = Balls.dtime;
             %Transforming balls velocity to normal coordinate
             VN1=(u1*cos(theta))+(v1*sin(theta));
             VT1=(-u1*sin(theta))+(v1*cos(theta));
             VN2=(u2*cos(theta))+(v2*sin(theta));
             VT2=(-u2*sin(theta))+(v2*cos(theta));
+                            
+            if (VN2-VN1)>0
+                [~,t1] = Balls.uv2speed(u1,v1);
+                [~,t2] = Balls.uv2speed(u2,v2);
+                [uf1,vf1] = Balls.speed2uv(Balls.speed,t1);
+                [uf2,vf2] = Balls.speed2uv(Balls.speed,t2);
+                return
+            end
             
-%            an = dt * (VN1+VN2)^2 / d /2;
-            %Resolving colllision for normal axis
-            VN1_F= VN2 ;
-            VN2_F= VN1 ;
-            %Retransforming balls velocity to original coordinate
-            uf1=(VN1_F*cos(theta))-(VT1*sin(theta));
-            vf1=(VN1_F*sin(theta))+(VT1*cos(theta));
-            uf2=(VN2_F*cos(theta))-(VT2*sin(theta));
-            vf2=(VN2_F*sin(theta))+(VT2*cos(theta));
+            dis = norm([y2-y1,x2-x1]);
             
-            % back to orig speed
-            [~, newt1] = Balls.uv2speed(uf1,vf1);
-            [~, newt2] = Balls.uv2speed(uf2,vf2);
-            [uf1,vf1] = Balls.speed2uv(Balls.speed,newt1);
-            [uf2,vf2] = Balls.speed2uv(Balls.speed,newt2);
+            if dis < Balls.hardcap
+                
+                % elastic collision
+                VN1_F= VN2;
+                VN2_F= VN1;
+                %Retransforming balls velocity to original coordinate
+                uf1=(VN1_F*cos(theta))-(VT1*sin(theta));
+                vf1=(VN1_F*sin(theta))+(VT1*cos(theta));
+                uf2=(VN2_F*cos(theta))-(VT2*sin(theta));
+                vf2=(VN2_F*sin(theta))+(VT2*cos(theta));
+                
+            else
+                %                 d = dis / Balls.softcap;
+
+                [~,t1] = Balls.uv2speed(u1, v1);
+                [~,t2] = Balls.uv2speed(u2, v2);
+                newt1 = t1 + Balls.angleturn;
+                newt2 = t2 - Balls.angleturn;
+                [uf1,vf1] = Balls.speed2uv(Balls.speed,newt1);
+                [uf2,vf2] = Balls.speed2uv(Balls.speed,newt2);
+            end
+% 
+%             d = norm([x1-x2,y1-y2]);
+%             dt = Balls.dtime;
+%             %Transforming balls velocity to normal coordinate
+%             VN1=(u1*cos(theta))+(v1*sin(theta));
+%             VN2=(u2*cos(theta))+(v2*sin(theta));
+%             
+%             a=cos(Balls.angleturn);
+%             %Resolving colllision for normal axis
+%             VN1_F= VN1*(1 - a);
+%             VN2_F= VN2*(1 - a);
+%             
+%             
+%             %scale to orig speed
+%             VT1 = Balls.calvt(VN1_F);
+%             VT2 = -Balls.calvt(VN2_F);
+%             
+%             %Retransforming balls velocity to original coordinate
+%             uf1=(VN1_F*cos(theta))-(VT1*sin(theta));
+%             vf1=(VN1_F*sin(theta))+(VT1*cos(theta));
+%             uf2=(VN2_F*cos(theta))-(VT2*sin(theta));
+%             vf2=(VN2_F*sin(theta))+(VT2*cos(theta));
+
+            
+            
         end
         
         %Declaring method to check whether a ball is out of bound
@@ -321,6 +368,14 @@ classdef Balls<handle
         function [speed,theta] = uv2speed(u, v)
             speed = sqrt(u.^2 + v.^2);
             theta = atan2(v,u);
+        end
+        
+        function vt = calvt(vn)
+            vt = sqrt(Balls.speed^2 - vn^2);
+            if ~isreal(vt)
+                vt = 0;
+                disp('what');
+            end
         end
     end
     %CodeEnd-------------------------------------------------------------------
