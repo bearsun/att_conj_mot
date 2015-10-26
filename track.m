@@ -85,11 +85,15 @@ fprintf(outfile,'%s\t %s\t %s\t %s\t %s\t %s\t %s\t %s\t %s\t %s\t %s\t %s\t %s\
 
 % build matrix for targets and distractors
 % for target: the target for this subject will be mod(subnum-1,6) + 1
-ctarget = mod(str2double(subnum)-1, size(colorseq, 1)) + 1;
-cdistractors = cindexes(~ismember(cindexes,ctarget));
+ctarget = mod(str2double(subnum)-1, size(colorsq, 1)) + 1;
+cdistractors = (cindexes(~ismember(cindexes,ctarget)))';
 factors = [cdistractors; ones(round(numel(cdistractors) * pertarget/(1-pertarget)),1) * ctarget];
-mattarget = reshape(BalanceTrials(ntrials * ntargets, 1, factors),[],4);
-matdis = reshape(BalanceTrials(ntrials * (nballs-ntargets), 1, cdistractors),[],4);
+alltarget = BalanceTrials(ntrials * ntargets, 1, factors);
+alltarget = alltarget(1:ntrials * ntargets);
+mattarget = reshape(alltarget,[],4);
+alldis = BalanceTrials(ntrials * (nballs-ntargets), 1, cdistractors);
+alldis = alldis(1:(ntrials * (nballs-ntargets)));
+matdis = reshape(alldis,[],4);
 matall = [mattarget,matdis];
 
 % initialize window

@@ -184,6 +184,7 @@ for block = 1:nblocks
     
     for trial = 1:ntrialsperb
         % prepare and wait to start
+        t1 = GetSecs;
         ti=targetindex(block,trial);
         disp(ti);
         tring=ceil(ti/stimPerRing);
@@ -213,7 +214,7 @@ for block = 1:nblocks
                 end
             end
         end
-        
+        disp(GetSecs - t1);
         Screen('FillRect', mainwin, white, fixRect);
         Screen('Flip', mainwin);
         KbStrokeWait;
