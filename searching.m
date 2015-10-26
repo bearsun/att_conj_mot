@@ -14,24 +14,24 @@ global distance
 global rect
 monitorh=30; %12;% in cm
 distance=55; %25;% in cm
-screenrect = [1280, 0, 2880, 1200];
+screenrect = [1024, 0, 2048, 768];
 % colors
 red = [255 0 0];
 green = [0 255 0];
 blue = [0 0 255];
 yellow = [255 255 0];
 
-% % stu .5
-% stired = [177 88 88];
-% stigreen = [68 136 68];
-% stiblue = [103 103 206];
-% stiyellow = [121 121 61];
-% stu .8
+% stu .5
+stired = [177 88 88];
+stigreen = [68 136 68];
+stiblue = [103 103 206];
+stiyellow = [121 121 61];
+% % stu .8
 % stired = [206 41 41];
 % stigreen = [28 139 28];
 % stiblue = [51 51 255];
 % stiyellow = [109 109 22];
-colors = [red;green;blue;yellow];
+colors = [stired;stigreen;stiblue;stiyellow];
 
 colorsq = [ones(6,1),perms(2:4)]; % control red color
 
@@ -199,7 +199,9 @@ for block = 1:nblocks
         ti=targetindex(block,trial);
         disp(ti);
         tring=ceil(ti/stimPerRing);
+        disp(tring);
         tpos=ti-(tring-1)*stimPerRing;
+        disp(tpos);
         jit=zeros(nrings,stimPerRing,4);
         for i = 1:nframes
             Screen('FillRect', buffers(i), bgcolor);
@@ -255,7 +257,7 @@ for block = 1:nblocks
             Screen('Flip', mainwin);
         end
         
-        respring = find(ismember(possiblekn,keypressed));
+        respring = find(ismember(possiblekn,keypressed)) - 1;
         if respring == tring
             cor = 1;
             Screen('FillRect', mainwin, green, fixRect);
@@ -267,7 +269,9 @@ for block = 1:nblocks
             subnum, subage, gender, group, session, block, trial, ti, possiblekn(tring+1), keypressed, ...
             cor, rt);
         Screen('Flip', mainwin);
-
+        if trial == ntrialsperb
+            WaitSecs(1);
+        end
     end
 end
 session_end;

@@ -8,7 +8,7 @@ trials = preload.trial;
 
 radius = 60;
 framerate = 60;
-rect = [0,0,1024,768];
+screenrect = [1024, 0, 2048, 768];
 fixrect = [0,0,8,8];
 [ntrials, nframes, ~, nballs] = size(trials);
 ntrialsperblock = 18;
@@ -29,17 +29,17 @@ red = [255 0 0];
 green = [0 255 0];
 blue = [0 0 255];
 yellow = [255 255 0];
-% % stu .5
-% stired = [177 88 88];
-% stigreen = [68 136 68];
-% stiblue = [103 103 206];
-% stiyellow = [121 121 61];
+% stu .5
+stired = [177 88 88];
+stigreen = [68 136 68];
+stiblue = [103 103 206];
+stiyellow = [121 121 61];
 % % stu .8
 % stired = [206 41 41];
 % stigreen = [28 139 28];
 % stiblue = [51 51 255];
 % stiyellow = [109 109 22];
-colors = [red;green;blue;yellow];
+colors = [stired;stigreen;stiblue;stiyellow];
 
 colorsq = [ones(6,1),perms(2:4)]; % control red color
 cindexes = 1:size(colorsq,1);
@@ -53,6 +53,7 @@ ballrect = [0,0,radius,radius];
 %black = [0 0 0];
 white = [255 255 255];
 gray = [128 128 128];
+black = [0 0 0];
 fixcolor = white;
 bgcolor = gray;
 
@@ -86,36 +87,50 @@ fprintf(outfile,'%s\t %s\t %s\t %s\t %s\t %s\t %s\t %s\t %s\t %s\t %s\t %s\t %s\
 % build matrix for targets and distractors
 % for target: the target for this subject will be mod(subnum-1,6) + 1
 ctarget = mod(str2double(subnum)-1, size(colorsq, 1)) + 1;
-cdistractors = cindexes(~ismember(cindexes,ctarget));
+cdistractors = (cindexes(~ismember(cindexes,ctarget)))';
 factors = [cdistractors; ones(round(numel(cdistractors) * pertarget/(1-pertarget)),1) * ctarget];
-mattarget = reshape(BalanceTrials(ntrials * ntargets, 1, factors),[],4);
-matdis = reshape(BalanceTrials(ntrials * (nballs-ntargets), 1, cdistractors),[],4);
+alltarget = BalanceTrials(ntrials * ntargets, 1, factors);
+alltarget = alltarget(1:ntrials * ntargets);
+mattarget = reshape(alltarget,[],4);
+alldis = BalanceTrials(ntrials * (nballs-ntargets), 1, cdistractors);
+alldis = alldis(1:(ntrials * (nballs-ntargets)));
+matdis = reshape(alldis,[],4);
 matall = [mattarget,matdis];
 
+% prompt mat to make sure distractors and targets are prompt 50/50
+pmat = BalanceTrials(ntrials, 1, 1:nballs);
+
 % initialize window
-[mainwin,~] = Screen('OpenWindow', sid, bgcolor, rect);
+[mainwin, rect] = Screen('OpenWindow', sid, bgcolor, screenrect);
 
 % background buffer
 buffers = NaN(nframes,1);
+t1 = GetSecs;
 for f = 1:nframes
-    [buffers(f),~] = Screen('OpenOffscreenWindow', sid, bgcolor, rect);
+    [buffers(f),~] = Screen('OpenOffscreenWindow', mainwin);
 end
 
-[blinkbuffer, ~] = Screen('OpenOffscreenWindow', sid, bgcolor, rect);
-[pbuffer, ~] = Screen('OpenOffscreenWindow', sid, bgcolor, rect);
+[blinkbuffer, ~] = Screen('OpenOffscreenWindow', mainwin);
+[pbuffer, ~] = Screen('OpenOffscreenWindow', mainwin);
+
+disp(GetSecs - t1);
 
 block = 1;
 nr = 0;
 for trial = 1:ntrials
 
-%     if mod(i,ntrialsperblock)
-%         block = num2str(ceil(i/ntrialsperblock));
-%         DrawFormattedText(mainwin, ['Block No.',block , ...
-%             ',\n Please feel free to take a break.\n'], 'center', 'center', white);
-%     end
+    if mod(trial,ntrialsperblock) == 1
+        block = num2str(ceil(trial/ntrialsperblock));
+        DrawFormattedText(mainwin, ['Block No.',block , ...
+            ',\n Please feel free to take a break.\n'], 'center', 'center', black);
+        Screen('Flip', mainwin);
+        KbStrokeWait;
+    end
     
     % draw everything on background buffers
     ballcolors = matall(trial,:);
+    disp(ballcolors);
+    t2 = GetSecs;
     for f = 1:nframes
         Screen('FillRect', buffers(f), bgcolor);
         Screen('FillRect', buffers(f), fixcolor, CenterRect(fixrect, rect));
@@ -163,7 +178,9 @@ for trial = 1:ntrials
     end
     
     % prompt buffer
-    ptarget = randi(8);
+    ptarget = pmat(trial);
+    disp('ptarget:');
+    disp(ptarget);
     Screen('FillRect', pbuffer, bgcolor);
     Screen('FillRect', pbuffer, fixcolor, CenterRect(fixrect, rect));
     for b = 1:nballs
@@ -175,6 +192,7 @@ for trial = 1:ntrials
         end
     end
     
+    disp(GetSecs - t2);
     % Wait to Start
     Screen('FillRect', mainwin, fixcolor, CenterRect(fixrect, rect));
     Screen('Flip', mainwin);
@@ -201,11 +219,11 @@ for trial = 1:ntrials
     Screen('DrawTexture', mainwin, pbuffer);
     Screen('Flip', mainwin);
     
-    t1 = GetSecs;
+    t3 = GetSecs;
     
     while 1
         [keyIsDown, secs, keyCode] = KbCheck;
-        if secs - t1 > prompttime
+        if secs - t3 > prompttime
             nr = 1;
             break;
         end
@@ -216,7 +234,7 @@ for trial = 1:ntrials
                 if keyCode(kesc)
                     session_end;return
                 elseif any(keyCode(possiblekn))
-                    rt = secs-t1;
+                    rt = secs-t3;
                     keypressed=find(keyCode);
                     break;
                 end
@@ -249,7 +267,7 @@ for trial = 1:ntrials
         Screen('FillRect', mainwin, red, CenterRect(fixrect, rect));
     end
     Screen('Flip', mainwin);
-    WaitSecs(1);
+    %WaitSecs(1);
 end
 
 session_end;
