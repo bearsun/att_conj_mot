@@ -4,8 +4,9 @@ function searching
 
 %% initialize everything
 clc;
-AssertOpenGL;
-Priority(1);
+%AssertOpenGL;
+%Priority(1);
+rng('shuffle');
 sid = 0;
 
 global monitorh
@@ -13,6 +14,7 @@ global distance
 global rect
 monitorh=30; %12;% in cm
 distance=55; %25;% in cm
+screenrect = [1280, 0, 2880, 1200];
 % colors
 red = [255 0 0];
 green = [0 255 0];
@@ -49,11 +51,10 @@ nballs=nrings*stimPerRing;
 startAngle = [0 90 180 270];
 arcAngle = 90;
 ballrect = [0,0,radius,radius];
-rect = [0,0,1024,768];
 
-black = BlackIndex(sid);
-white = WhiteIndex(sid);
-gray = GrayIndex(sid);
+%black = BlackIndex(sid);
+white = [255 255 255];
+gray = [128 128 128];
 bgcolor = gray;
 fixsi = 8;
 
@@ -63,6 +64,7 @@ kn1 = KbName('KP_End');
 kn2 = KbName('KP_Down');
 kn3 = KbName('KP_Next');
 possiblekn = [kn0; kn1; kn2; kn3];
+disp('parameters_initiated');
 
 %% random target position with no repeat
 targetoptions=[1:nballs,zeros(1,stimPerRing)]; %catch trials 25%, each ring 25%
@@ -101,27 +103,30 @@ outfile = fopen(outputname,'w');
 fprintf(outfile,'%s\t %s\t %s\t %s\t %s\t %s\t %s\t %s\t %s\t %s\t %s\t %s\t \n', ...
     'subnum', 'subage', 'gender', 'group', 'session', 'block', 'trial', 'itarget', 'answer', 'keypressed', ...
     'cor','rt');
+disp('data_file_opened');
 
 % target color combination is determined by the subnum
 ctarget = mod(str2double(subnum)-1, size(colorsq, 1)) + 1;
 targetcolor = colors(colorsq(ctarget,:),:);
 % distractor color is from the rest of 5 colors
 discolor = targetcolor([1,3,4,2],:);
+disp('target:');
 disp(targetcolor);
+disp('distractor:');
 disp(discolor);
 
 %% initialize window
-[mainwin,~] = Screen('OpenWindow', sid, bgcolor, rect);
+[mainwin,rect] = Screen('OpenWindow', sid, bgcolor,screenrect);
 
 % open buffer
 buffers = NaN(nframes,1);
 for i = 1:nframes
-    [buffers(i),~] = Screen('OpenOffscreenWindow', sid, bgcolor, rect);
+    [buffers(i),~] = Screen('OpenOffscreenWindow', mainwin, bgcolor);
 end
 
 %% build up position arrays
 % basic screen
-center = [rect(3)/2 rect(4)/2];
+center = [(rect(3)-rect(1))/2, (rect(4)-rect(2))/2];
 fixRect = CenterRect([0 0 fixsi fixsi], rect);
 
 % construct stimuli
@@ -132,7 +137,7 @@ jitterDistance=.08;%in degrees; to be scaled
 
 %empty variable
 stimLocation = NaN(nblocks,ntrialsperb,nrings,stimPerRing,4);
-stimSize=NaN(2,4);
+stimSize=NaN(nrings,4);
 eccentricity=NaN(nrings);
 
 separationAngle=360/stimPerRing;
@@ -140,17 +145,17 @@ compass = separationAngle:separationAngle:360; %rectangle
 jpix=ang2pix(jitterDistance);
 
 %enlarge for placeholder
-jph=[-jpix,-jpix,jpix,jpix]';
+%jph=[-jpix,-jpix,jpix,jpix]';
 
 %ecc in degree to size
-for ring=1:4
+for ring=1:nrings
     ecc=proximalStimDist+stimSeparation*ring^2;
     gratingSize=CorticalScaleFactor(corticalStimSize,ecc);
     stimSize(ring,:)=[0 0 1 1] * ang2pix(gratingSize);
     eccentricity(ring)=ang2pix(ecc);
 end
 
-%regenerate positions each block with jitters
+%generate positions
 for block=1:nblocks
     for trial=1:ntrialsperb
         for ring=1:nrings
@@ -166,9 +171,14 @@ end
 tarpos = [center(1)-200, center(2) + 100];
 dispos = [center(1)+200, center(2) + 100];
 
+disp('pass_position_generation');
+
 %% exp start
 for block = 1:nblocks
-   % DrawFormattedText(mainwin, ['Block No.', num2str(block)], 'center','center',white);
+   DrawFormattedText(mainwin, ['Block No.', num2str(block)], 'center','center',white);
+   Screen('DrawText', mainwin, 'Target', tarpos(1)-30, tarpos(2)-70, white);
+   Screen('DrawText', mainwin, 'Distractor', dispos(1)-45, dispos(2)-70, white);
+   t1 = GetSecs;
     % target left
     Screen('FillArc', mainwin, targetcolor(1,:), CenterRectOnPoint(ballrect, tarpos(1),tarpos(2)), startAngle(1), arcAngle);
     Screen('FillArc', mainwin, targetcolor(2,:), CenterRectOnPoint(ballrect, tarpos(1),tarpos(2)), startAngle(2), arcAngle);
@@ -180,10 +190,12 @@ for block = 1:nblocks
     Screen('FillArc', mainwin, discolor(3,:), CenterRectOnPoint(ballrect, dispos(1),dispos(2)), startAngle(3), arcAngle);
     Screen('FillArc', mainwin, discolor(4,:), CenterRectOnPoint(ballrect, dispos(1),dispos(2)), startAngle(4), arcAngle);
     Screen('Flip',mainwin);
+    disp(GetSecs-t1);
     KbStrokeWait;
     
     for trial = 1:ntrialsperb
         % prepare and wait to start
+        t2 = GetSecs;
         ti=targetindex(block,trial);
         disp(ti);
         tring=ceil(ti/stimPerRing);
@@ -213,7 +225,7 @@ for block = 1:nblocks
                 end
             end
         end
-        
+        disp(t2-GetSecs);
         Screen('FillRect', mainwin, white, fixRect);
         Screen('Flip', mainwin);
         KbStrokeWait;
@@ -251,16 +263,11 @@ for block = 1:nblocks
             Screen('FillRect', mainwin, red, fixRect);
             cor = 0;
         end
-        Screen('Flip', mainwin);
-        
         fprintf(outfile,'%s\t %s\t %s\t %s\t %s\t %d\t %d\t %d\t %d\t %d\t %d\t %d\t \n', ...
             subnum, subage, gender, group, session, block, trial, ti, possiblekn(tring+1), keypressed, ...
             cor, rt);
-        
-        WaitSecs(1);
-        Screen('FillRect', mainwin, white, fixRect);
         Screen('Flip', mainwin);
-        KbStrokeWait;
+
     end
 end
 session_end;
