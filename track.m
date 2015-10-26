@@ -267,7 +267,9 @@ for trial = 1:ntrials
         Screen('FillRect', mainwin, red, CenterRect(fixrect, rect));
     end
     Screen('Flip', mainwin);
-    %WaitSecs(1);
+    if mod(trial,ntrialsperblock) == 0
+        WaitSecs(1);
+    end
 end
 
 session_end;
