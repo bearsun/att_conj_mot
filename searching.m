@@ -22,15 +22,15 @@ blue = [0 0 255];
 yellow = [255 255 0];
 
 % stu .5
-stired = [177 88 88];
-stigreen = [68 136 68];
-stiblue = [103 103 206];
-stiyellow = [121 121 61];
-% % stu .8
-% stired = [206 41 41];
-% stigreen = [28 139 28];
-% stiblue = [51 51 255];
-% stiyellow = [109 109 22];
+% stired = [177 88 88];
+% stigreen = [68 136 68];
+% stiblue = [103 103 206];
+% stiyellow = [121 121 61];
+% stu .8
+stired = [206 41 41];
+stigreen = [28 139 28];
+stiblue = [51 51 255];
+stiyellow = [109 109 22];
 colors = [stired;stigreen;stiblue;stiyellow];
 
 colorsq = [ones(6,1),perms(2:4)]; % control red color
@@ -55,7 +55,8 @@ ballrect = [0,0,radius,radius];
 %black = BlackIndex(sid);
 white = [255 255 255];
 gray = [128 128 128];
-bgcolor = gray;
+black = [0 0 0];
+bgcolor = black;
 fixsi = 8;
 
 kesc = KbName('Escape');
