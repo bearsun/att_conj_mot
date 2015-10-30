@@ -29,16 +29,16 @@ red = [255 0 0];
 green = [0 255 0];
 blue = [0 0 255];
 yellow = [255 255 0];
-% stu .5
-stired = [177 88 88];
-stigreen = [68 136 68];
-stiblue = [103 103 206];
-stiyellow = [121 121 61];
-% % stu .8
-% stired = [206 41 41];
-% stigreen = [28 139 28];
-% stiblue = [51 51 255];
-% stiyellow = [109 109 22];
+% % stu .5
+% stired = [177 88 88];
+% stigreen = [68 136 68];
+% stiblue = [103 103 206];
+% stiyellow = [121 121 61];
+% stu .8
+stired = [206 41 41];
+stigreen = [28 139 28];
+stiblue = [51 51 255];
+stiyellow = [109 109 22];
 colors = [stired;stigreen;stiblue;stiyellow];
 
 colorsq = [ones(6,1),perms(2:4)]; % control red color
@@ -55,7 +55,7 @@ white = [255 255 255];
 gray = [128 128 128];
 black = [0 0 0];
 fixcolor = white;
-bgcolor = gray;
+bgcolor = black;
 
 
 kesc = KbName('Escape');
@@ -139,10 +139,13 @@ for trial = 1:ntrials
                 pos = trials(trial,f,1:2,b);
                 bcolor = colorsq(ballcolors(b), :);
                 fades = (colors(bcolor,:) - ones(4,1) * white) / preframes * (f-1) + ones(4,1) * white;
+                fadeblack = (black-white) / preframes * (f-1) + white;
                 Screen('FillArc', buffers(f), fades(1,:), CenterRectOnPoint(ballrect, pos(1),pos(2)), startAngle(1), arcAngle);
                 Screen('FillArc', buffers(f), fades(2,:), CenterRectOnPoint(ballrect, pos(1),pos(2)), startAngle(2), arcAngle);
                 Screen('FillArc', buffers(f), fades(3,:), CenterRectOnPoint(ballrect, pos(1),pos(2)), startAngle(3), arcAngle);
                 Screen('FillArc', buffers(f), fades(4,:), CenterRectOnPoint(ballrect, pos(1),pos(2)), startAngle(4), arcAngle);
+                Screen('FrameRect', buffers(f), fadeblack, CenterRectOnPoint(ballrect / 2, pos(1) -radius/2,pos(2)-radius/2));
+                Screen('FrameRect', buffers(f), fadeblack, CenterRectOnPoint(ballrect / 2, pos(1) +radius/2,pos(2)+radius/2));
             end
             
         elseif f > (nframes-preframes)
@@ -150,10 +153,13 @@ for trial = 1:ntrials
                 pos = trials(trial,f,1:2,b);
                 bcolor = colorsq(ballcolors(b), :);
                 fades = (colors(bcolor,:) - ones(4,1) * white) / preframes * (nframes-f) + ones(4,1) * white;
+                fadeblack = (black-white) / preframes * (nframes-f) + white;
                 Screen('FillArc', buffers(f), fades(1,:), CenterRectOnPoint(ballrect, pos(1),pos(2)), startAngle(1), arcAngle);
                 Screen('FillArc', buffers(f), fades(2,:), CenterRectOnPoint(ballrect, pos(1),pos(2)), startAngle(2), arcAngle);
                 Screen('FillArc', buffers(f), fades(3,:), CenterRectOnPoint(ballrect, pos(1),pos(2)), startAngle(3), arcAngle);
                 Screen('FillArc', buffers(f), fades(4,:), CenterRectOnPoint(ballrect, pos(1),pos(2)), startAngle(4), arcAngle);
+                Screen('FrameRect', buffers(f), fadeblack, CenterRectOnPoint(ballrect / 2, pos(1) -radius/2,pos(2)-radius/2));
+                Screen('FrameRect', buffers(f), fadeblack, CenterRectOnPoint(ballrect / 2, pos(1) +radius/2,pos(2)+radius/2));
             end
         else
             for b = 1:nballs
@@ -163,6 +169,8 @@ for trial = 1:ntrials
                 Screen('FillArc', buffers(f), colors(bcolor(2),:), CenterRectOnPoint(ballrect, pos(1),pos(2)), startAngle(2), arcAngle);
                 Screen('FillArc', buffers(f), colors(bcolor(3),:), CenterRectOnPoint(ballrect, pos(1),pos(2)), startAngle(3), arcAngle);
                 Screen('FillArc', buffers(f), colors(bcolor(4),:), CenterRectOnPoint(ballrect, pos(1),pos(2)), startAngle(4), arcAngle);
+                Screen('FrameRect', buffers(f), black, CenterRectOnPoint(ballrect / 2, pos(1) -radius/2,pos(2)-radius/2));
+                Screen('FrameRect', buffers(f), black, CenterRectOnPoint(ballrect / 2, pos(1) +radius/2,pos(2)+radius/2));
             end
         end
     end
