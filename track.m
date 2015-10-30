@@ -119,13 +119,13 @@ block = 1;
 nr = 0;
 for trial = 1:ntrials
 
-    if mod(trial,ntrialsperblock) == 1
-        block = num2str(ceil(trial/ntrialsperblock));
-        DrawFormattedText(mainwin, ['Block No.',block , ...
-            ',\n Please feel free to take a break.\n'], 'center', 'center', black);
-        Screen('Flip', mainwin);
-        KbStrokeWait;
-    end
+%     if mod(trial,ntrialsperblock) == 1
+%         block = num2str(ceil(trial/ntrialsperblock));
+%         DrawFormattedText(mainwin, ['Block No.',block , ...
+%             ',\n Please feel free to take a break.\n'], 'center', 'center', black);
+%         Screen('Flip', mainwin);
+%         KbStrokeWait;
+%     end
     
     % draw everything on background buffers
     ballcolors = matall(trial,:);
