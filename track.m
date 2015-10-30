@@ -6,9 +6,9 @@ preload = load('test.mat');
 trials = preload.trial;
 
 
-radius = 60;
+radius = 40;
 framerate = 60;
-screenrect = [1024, 0, 2048, 768];
+screenrect = [0 0 1024 768];%[1024, 0, 2048, 768];
 fixrect = [0,0,8,8];
 [ntrials, nframes, ~, nballs] = size(trials);
 ntrialsperblock = 18;
@@ -48,7 +48,7 @@ cindexes = 1:size(colorsq,1);
 startAngle = [0 90 180 270];
 arcAngle = 90;
 arcAnglefull = 360;
-ballrect = [0,0,radius,radius];
+ballrect = [0,0,radius*2,radius*2];
 
 %black = [0 0 0];
 white = [255 255 255];
@@ -144,8 +144,8 @@ for trial = 1:ntrials
                 Screen('FillArc', buffers(f), fades(2,:), CenterRectOnPoint(ballrect, pos(1),pos(2)), startAngle(2), arcAngle);
                 Screen('FillArc', buffers(f), fades(3,:), CenterRectOnPoint(ballrect, pos(1),pos(2)), startAngle(3), arcAngle);
                 Screen('FillArc', buffers(f), fades(4,:), CenterRectOnPoint(ballrect, pos(1),pos(2)), startAngle(4), arcAngle);
-                Screen('FrameRect', buffers(f), fadeblack, CenterRectOnPoint(ballrect / 2, pos(1) -radius/2,pos(2)-radius/2));
-                Screen('FrameRect', buffers(f), fadeblack, CenterRectOnPoint(ballrect / 2, pos(1) +radius/2,pos(2)+radius/2));
+                Screen('DrawLine', buffers(f), fadeblack, pos(1) - radius, pos(2), pos(1) + radius, pos(2));
+                Screen('DrawLine', buffers(f), fadeblack, pos(1), pos(2) - radius, pos(1), pos(2) + radius);
             end
             
         elseif f > (nframes-preframes)
@@ -158,8 +158,8 @@ for trial = 1:ntrials
                 Screen('FillArc', buffers(f), fades(2,:), CenterRectOnPoint(ballrect, pos(1),pos(2)), startAngle(2), arcAngle);
                 Screen('FillArc', buffers(f), fades(3,:), CenterRectOnPoint(ballrect, pos(1),pos(2)), startAngle(3), arcAngle);
                 Screen('FillArc', buffers(f), fades(4,:), CenterRectOnPoint(ballrect, pos(1),pos(2)), startAngle(4), arcAngle);
-                Screen('FrameRect', buffers(f), fadeblack, CenterRectOnPoint(ballrect / 2, pos(1) -radius/2,pos(2)-radius/2));
-                Screen('FrameRect', buffers(f), fadeblack, CenterRectOnPoint(ballrect / 2, pos(1) +radius/2,pos(2)+radius/2));
+                Screen('DrawLine', buffers(f), fadeblack, pos(1) - radius, pos(2), pos(1) + radius, pos(2));
+                Screen('DrawLine', buffers(f), fadeblack, pos(1), pos(2) - radius, pos(1), pos(2) + radius);
             end
         else
             for b = 1:nballs
@@ -168,9 +168,9 @@ for trial = 1:ntrials
                 Screen('FillArc', buffers(f), colors(bcolor(1),:), CenterRectOnPoint(ballrect, pos(1),pos(2)), startAngle(1), arcAngle);
                 Screen('FillArc', buffers(f), colors(bcolor(2),:), CenterRectOnPoint(ballrect, pos(1),pos(2)), startAngle(2), arcAngle);
                 Screen('FillArc', buffers(f), colors(bcolor(3),:), CenterRectOnPoint(ballrect, pos(1),pos(2)), startAngle(3), arcAngle);
-                Screen('FillArc', buffers(f), colors(bcolor(4),:), CenterRectOnPoint(ballrect, pos(1),pos(2)), startAngle(4), arcAngle);
-                Screen('FrameRect', buffers(f), black, CenterRectOnPoint(ballrect / 2, pos(1) -radius/2,pos(2)-radius/2));
-                Screen('FrameRect', buffers(f), black, CenterRectOnPoint(ballrect / 2, pos(1) +radius/2,pos(2)+radius/2));
+                Screen('FillArc', buffers(f), colors(bcolor(4),:), CenterRectOnPoint(ballrect, pos(1),pos(2)), startAngle(4), arcAngle);                
+                Screen('DrawLine', buffers(f), black, pos(1) - radius, pos(2), pos(1) + radius, pos(2));
+                Screen('DrawLine', buffers(f), black, pos(1), pos(2) - radius, pos(1), pos(2) + radius);
             end
         end
     end
