@@ -4,6 +4,7 @@ function searching
 
 %% initialize everything
 clc;
+global ptb_RootPath
 %AssertOpenGL;
 %Priority(1);
 rng('shuffle');
@@ -14,7 +15,7 @@ global distance
 global rect
 monitorh=30; %12;% in cm
 distance=55; %25;% in cm
-screenrect = [1024, 0, 2048, 768];
+screenrect = [1024 0 2048 768];
 % colors
 red = [255 0 0];
 green = [0 255 0];
@@ -42,7 +43,7 @@ ntrialsperb = 24;
 ntrials = nblocks * ntrialsperb;
 searchtime = 4; % 4s to search
 nframes = searchtime * 60;
-radius = 80;
+radius = 40;
 nrings=3;
 stimPerRing=8;
 nballs=nrings*stimPerRing;
@@ -50,7 +51,7 @@ nballs=nrings*stimPerRing;
 % for color from q1 to q4
 startAngle = [0 90 180 270];
 arcAngle = 90;
-ballrect = [0,0,radius,radius];
+ballrect = [0,0,radius*2,radius*2];
 
 %black = BlackIndex(sid);
 white = [255 255 255];
@@ -177,19 +178,23 @@ disp('pass_position_generation');
 %% exp start
 for block = 1:nblocks
    DrawFormattedText(mainwin, ['Block No.', num2str(block)], 'center','center',white);
-   Screen('DrawText', mainwin, 'Target', tarpos(1)-30, tarpos(2)-70, white);
-   Screen('DrawText', mainwin, 'Distractor', dispos(1)-45, dispos(2)-70, white);
+   Screen('DrawText', mainwin, 'Target', tarpos(1)-20, tarpos(2)-70, white);
+   Screen('DrawText', mainwin, 'Distractor', dispos(1)-25, dispos(2)-70, white);
    t1 = GetSecs;
     % target left
     Screen('FillArc', mainwin, targetcolor(1,:), CenterRectOnPoint(ballrect, tarpos(1),tarpos(2)), startAngle(1), arcAngle);
     Screen('FillArc', mainwin, targetcolor(2,:), CenterRectOnPoint(ballrect, tarpos(1),tarpos(2)), startAngle(2), arcAngle);
     Screen('FillArc', mainwin, targetcolor(3,:), CenterRectOnPoint(ballrect, tarpos(1),tarpos(2)), startAngle(3), arcAngle);
     Screen('FillArc', mainwin, targetcolor(4,:), CenterRectOnPoint(ballrect, tarpos(1),tarpos(2)), startAngle(4), arcAngle);
+    Screen('DrawLine', mainwin, black, tarpos(1) - radius, tarpos(2), tarpos(1) + radius, tarpos(2));
+    Screen('DrawLine', mainwin, black, tarpos(1), tarpos(2) - radius, tarpos(1), tarpos(2) + radius);
     % distractor right
     Screen('FillArc', mainwin, discolor(1,:), CenterRectOnPoint(ballrect, dispos(1),dispos(2)), startAngle(1), arcAngle);
     Screen('FillArc', mainwin, discolor(2,:), CenterRectOnPoint(ballrect, dispos(1),dispos(2)), startAngle(2), arcAngle);
     Screen('FillArc', mainwin, discolor(3,:), CenterRectOnPoint(ballrect, dispos(1),dispos(2)), startAngle(3), arcAngle);
     Screen('FillArc', mainwin, discolor(4,:), CenterRectOnPoint(ballrect, dispos(1),dispos(2)), startAngle(4), arcAngle);
+    Screen('DrawLine', mainwin, black, dispos(1) - radius, dispos(2), dispos(1) + radius, dispos(2));
+    Screen('DrawLine', mainwin, black, dispos(1), dispos(2) - radius, dispos(1), dispos(2) + radius);
     Screen('Flip',mainwin);
     disp(GetSecs-t1);
     KbStrokeWait;
@@ -214,17 +219,21 @@ for block = 1:nblocks
                         yjit=(-1)^randi(2)*sqrt(jpix^2-xjit^2);
                         jit(ring,stimIndex,:)=[xjit;yjit;xjit;yjit];
                     end
+                    loc = squeeze(stimLocation(block,trial,ring,stimIndex,:))+squeeze(jit(ring,stimIndex,:));
+                    r = (loc(3)-loc(1))/2;
                     if stimIndex==tpos&&ring==tring
-                        Screen('FillArc',buffers(i),targetcolor(1,:),squeeze(stimLocation(block,trial,ring,stimIndex,:))+squeeze(jit(ring,stimIndex,:)),startAngle(1),arcAngle);
-                        Screen('FillArc',buffers(i),targetcolor(2,:),squeeze(stimLocation(block,trial,ring,stimIndex,:))+squeeze(jit(ring,stimIndex,:)),startAngle(2),arcAngle);
-                        Screen('FillArc',buffers(i),targetcolor(3,:),squeeze(stimLocation(block,trial,ring,stimIndex,:))+squeeze(jit(ring,stimIndex,:)),startAngle(3),arcAngle);
-                        Screen('FillArc',buffers(i),targetcolor(4,:),squeeze(stimLocation(block,trial,ring,stimIndex,:))+squeeze(jit(ring,stimIndex,:)),startAngle(4),arcAngle);
+                        Screen('FillArc',buffers(i),targetcolor(1,:),loc,startAngle(1),arcAngle);
+                        Screen('FillArc',buffers(i),targetcolor(2,:),loc,startAngle(2),arcAngle);
+                        Screen('FillArc',buffers(i),targetcolor(3,:),loc,startAngle(3),arcAngle);
+                        Screen('FillArc',buffers(i),targetcolor(4,:),loc,startAngle(4),arcAngle);
                     else
-                        Screen('FillArc',buffers(i),discolor(1,:),squeeze(stimLocation(block,trial,ring,stimIndex,:))+squeeze(jit(ring,stimIndex,:)),startAngle(1),arcAngle);
-                        Screen('FillArc',buffers(i),discolor(2,:),squeeze(stimLocation(block,trial,ring,stimIndex,:))+squeeze(jit(ring,stimIndex,:)),startAngle(2),arcAngle);
-                        Screen('FillArc',buffers(i),discolor(3,:),squeeze(stimLocation(block,trial,ring,stimIndex,:))+squeeze(jit(ring,stimIndex,:)),startAngle(3),arcAngle);
-                        Screen('FillArc',buffers(i),discolor(4,:),squeeze(stimLocation(block,trial,ring,stimIndex,:))+squeeze(jit(ring,stimIndex,:)),startAngle(4),arcAngle);
+                        Screen('FillArc',buffers(i),discolor(1,:),loc,startAngle(1),arcAngle);
+                        Screen('FillArc',buffers(i),discolor(2,:),loc,startAngle(2),arcAngle);
+                        Screen('FillArc',buffers(i),discolor(3,:),loc,startAngle(3),arcAngle);
+                        Screen('FillArc',buffers(i),discolor(4,:),loc,startAngle(4),arcAngle);
                     end
+                    Screen('DrawLine', buffers(i), black, loc(1), loc(2) + r, loc(3), loc(2) + r);
+                    Screen('DrawLine', buffers(i), black, loc(1) + r, loc(2), loc(1) + r, loc(4));
                 end
             end
         end
