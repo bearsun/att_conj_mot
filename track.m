@@ -2,7 +2,7 @@ function track
 % test trial by trial
 % ntrials = 72;
 
-preload = load('test.mat');
+preload = load('test_360.mat');
 trials = preload.trial;
 
 

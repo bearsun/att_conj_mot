@@ -35,6 +35,6 @@ for i = 1:n
     disp(i);
 end
 
-save('test.mat', 'trial');
+save(['test_', num2str(balls.speed),'.mat'], 'trial');
 
 end

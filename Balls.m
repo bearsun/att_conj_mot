@@ -56,9 +56,9 @@ classdef Balls<handle
     end
     %Declaring constant
     properties(Constant=true)
-        dtime = 2/60; %speed of updating screen
+        dtime = 1/60; %speed of updating screen
         radius = 40; % constant radius
-        speed = 160; % constant speed per frame
+        speed = 400; % constant speed per frame
         % use color RGBY, represented by 1:4
         % each col corresponding to a quandrant
         % so we should have 24 different combination of colors for ball
