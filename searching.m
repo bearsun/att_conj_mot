@@ -35,6 +35,9 @@ stiyellow = [109 109 22];
 colors = [stired;stigreen;stiblue;stiyellow];
 
 colorsq = [ones(6,1),perms(2:4)]; % control red color
+% I will only use A B C D first 4 stimuli in the colorsq
+colorsq = colorsq(1:4,:);
+%cindexes = 1:size(colorsq,1);
 
 
 % parameters
@@ -107,15 +110,39 @@ fprintf(outfile,'%s\t %s\t %s\t %s\t %s\t %s\t %s\t %s\t %s\t %s\t %s\t %s\t \n'
     'cor','rt');
 disp('data_file_opened');
 
-% target color combination is determined by the subnum
-ctarget = mod(str2double(subnum)-1, size(colorsq, 1)) + 1;
-targetcolor = colors(colorsq(ctarget,:),:);
-% distractor color is from the rest of 5 colors
-discolor = targetcolor([1,3,4,2],:);
-disp('target:');
-disp(targetcolor);
-disp('distractor:');
-disp(discolor);
+% build matrix for targets and distractors
+% Target A, Target B, Dis C, Dis D
+ctargetA = mod(str2double(subnum)-1, size(colorsq, 1)) + 1;
+ctargetB = mod(str2double(subnum), size(colorsq, 1)) + 1;
+cdisC = mod(str2double(subnum)-3,size(colorsq, 1)) + 1;
+cdisD = mod(str2double(subnum)-2,size(colorsq,1)) + 1;
+
+%% four kind of trials:
+% 1:Target A, Dis C
+% 2:Target B, Dis C
+% 3:Target A, Dis D
+% 4:Target B, Dis D
+
+colorpairs = [ctargetA, cdisC;
+    ctargetB, cdisC;
+    ctargetA, cdisD;
+    ctargetB, cdisD];
+
+% to make sure the within session learning is the same for each condition
+% for each target/distractor, I arrange the 8 blocks as 14233241.
+% the whole will looks like:
+% A C
+% B D
+% B C
+% A D
+% A D
+% B C
+% B D
+% A C
+% since we are comparing pre/post, if we keep the order exactly the same,
+% the schedule effect shouldn't matter (AD repeats one time in the middle)
+
+orderblock = [1 4 2 3 3 2 4 1];
 
 %% initialize window
 [mainwin,rect] = Screen('OpenWindow', sid, bgcolor,screenrect);
@@ -177,10 +204,21 @@ disp('pass_position_generation');
 
 %% exp start
 for block = 1:nblocks
-   DrawFormattedText(mainwin, ['Block No.', num2str(block)], 'center','center',white);
-   Screen('DrawText', mainwin, 'Target', tarpos(1)-20, tarpos(2)-70, white);
-   Screen('DrawText', mainwin, 'Distractor', dispos(1)-25, dispos(2)-70, white);
-   t1 = GetSecs;
+    colorpair = colorpairs(block,:);
+    itarget = colorpair(1);
+    idis = colorpair(2);
+    targetcolor = colors(colorsq(itarget,:),:);
+    % distractor color is from the rest of 5 colors
+    discolor = colors(colorsq(idis,:),:);
+    disp('target:');
+    disp(targetcolor);
+    disp('distractor:');
+    disp(discolor);
+    
+    DrawFormattedText(mainwin, ['Block No.', num2str(block)], 'center','center',white);
+    Screen('DrawText', mainwin, 'Target', tarpos(1)-20, tarpos(2)-70, white);
+    Screen('DrawText', mainwin, 'Distractor', dispos(1)-25, dispos(2)-70, white);
+    t1 = GetSecs;
     % target left
     Screen('FillArc', mainwin, targetcolor(1,:), CenterRectOnPoint(ballrect, tarpos(1),tarpos(2)), startAngle(1), arcAngle);
     Screen('FillArc', mainwin, targetcolor(2,:), CenterRectOnPoint(ballrect, tarpos(1),tarpos(2)), startAngle(2), arcAngle);
