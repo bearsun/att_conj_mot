@@ -4,23 +4,23 @@ function searching
 
 %% initialize everything
 clc;
-global ptb_RootPath
+global ptb_RootPath %#ok<NUSED>
 %AssertOpenGL;
 %Priority(1);
 rng('shuffle');
-sid = 0;
+sid = 1;
 
 global monitorh
 global distance
 global rect
 monitorh=30; %12;% in cm
 distance=55; %25;% in cm
-screenrect = [1024 0 2048 768];
+%screenrect = [1024 0 2048 768];
 % colors
 red = [255 0 0];
 green = [0 255 0];
-blue = [0 0 255];
-yellow = [255 255 0];
+%blue = [0 0 255];
+%yellow = [255 255 0];
 
 % stu .5
 % stired = [177 88 88];
@@ -58,7 +58,7 @@ ballrect = [0,0,radius*2,radius*2];
 
 %black = BlackIndex(sid);
 white = [255 255 255];
-gray = [128 128 128];
+%gray = [128 128 128];
 black = [0 0 0];
 bgcolor = black;
 fixsi = 8;
@@ -145,7 +145,7 @@ colorpairs = [ctargetA, cdisC;
 orderblock = [1 4 2 3 3 2 4 1];
 
 %% initialize window
-[mainwin,rect] = Screen('OpenWindow', sid, bgcolor,screenrect);
+[mainwin,rect] = Screen('OpenWindow', sid, bgcolor);
 
 % open buffer
 buffers = NaN(nframes,1);
@@ -204,7 +204,7 @@ disp('pass_position_generation');
 
 %% exp start
 for block = 1:nblocks
-    colorpair = colorpairs(block,:);
+    colorpair = colorpairs(orderblock(block),:);
     itarget = colorpair(1);
     idis = colorpair(2);
     targetcolor = colors(colorsq(itarget,:),:);
