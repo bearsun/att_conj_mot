@@ -1,4 +1,4 @@
-function searching
+function searching(debug)
 % pre and post test for this learning exp
 % 10/20/15 by Liwei
 
@@ -42,12 +42,12 @@ colorsq = colorsq(1:4,:);
 
 % parameters
 nblocks = 8;
-ntrialsperb = 24;
+ntrialsperb = 25;
 ntrials = nblocks * ntrialsperb;
-searchtime = 4; % 4s to search
+searchtime = 6; % 6s to search
 nframes = searchtime * 60;
 radius = 40;
-nrings=3;
+nrings=4;
 stimPerRing=8;
 nballs=nrings*stimPerRing;
 
@@ -64,11 +64,16 @@ bgcolor = black;
 fixsi = 8;
 
 kesc = KbName('Escape');
+kspace = KbName('space');
+kreturn = KbName('Return');
+kback = KbName('BackSpace');
+kleftctrl = KbName('Control_L');
 kn0 = KbName('KP_Insert');
 kn1 = KbName('KP_End');
 kn2 = KbName('KP_Down');
 kn3 = KbName('KP_Next');
-possiblekn = [kn0; kn1; kn2; kn3];
+kn4 = KbName('KP_Enter');
+possiblekn = [kn0; kn1; kn2; kn3; kn4];
 disp('parameters_initiated');
 
 %% random target position with no repeat
@@ -108,6 +113,7 @@ outfile = fopen(outputname,'w');
 fprintf(outfile,'%s\t %s\t %s\t %s\t %s\t %s\t %s\t %s\t %s\t %s\t %s\t %s\t \n', ...
     'subnum', 'subage', 'gender', 'group', 'session', 'block', 'trial', 'itarget', 'answer', 'keypressed', ...
     'cor','rt');
+abbreviatedFilename=[subnum,'_',datestr(now,'mmdd')];
 disp('data_file_opened');
 
 % build matrix for targets and distractors
@@ -160,9 +166,9 @@ fixRect = CenterRect([0 0 fixsi fixsi], rect);
 
 % construct stimuli
 corticalStimSize=5;%in mm
-proximalStimDist=2;% in degrees!!
-stimSeparation=1; %in degrees, to be scaled
-jitterDistance=.08;%in degrees; to be scaled
+proximalStimDist=.8;% in degrees!!
+stimSeparation=.6; %in degrees, to be scaled
+jitterDistance=.05;%in degrees; to be scaled
 
 %empty variable
 stimLocation = NaN(nblocks,ntrialsperb,nrings,stimPerRing,4);
@@ -202,7 +208,79 @@ dispos = [center(1)+200, center(2) + 100];
 
 disp('pass_position_generation');
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Calibration
+if ~debug
+    Eyelink('Shutdown');
+    Eyelink('Initialize');
+    HideCursor;
+    Screen('Fillrect', mainwin, black)
+    Screen('Flip',mainwin);
+    
+    Eyelink('StartSetup')
+    pause(2)
+    
+    
+    whichKey=0;
+    
+    keysWanted=[kspace kreturn kback];
+    FlushEvents('KeyDown');
+    while 1
+        pressed = 0;
+        while pressed == 0
+            [pressed, ~, kbData] = KbCheck;
+        end;
+        
+        for keysToCheck = 1:length(keysWanted)
+            if kbData(keysWanted(keysToCheck)) == 1
+                
+                keyPressed = keysWanted(keysToCheck);
+                if keyPressed == kback
+                    whichKey=9;
+                    FlushEvents('KeyDown');
+                    WaitSecs(.1)
+                elseif keyPressed == kspace
+                    whichKey=1;
+                    FlushEvents('KeyDown');
+                    WaitSecs(.1)
+                elseif keyPressed == kreturn
+                    whichKey=5;
+                    FlushEvents('KeyDown');
+                    WaitSecs(.1)
+                else
+                end
+                FlushEvents('KeyDown');
+                
+            end;
+        end;
+        
+        if whichKey == 1
+            whichKey=0;
+            [~, tx, ty] = Eyelink('TargetCheck');
+            tx=tx*.64;
+            ty=ty*.64;
+            Screen('FillRect', mainwin ,white, [tx-20 ty-5 tx+20 ty+5]);
+            Screen('FillRect', mainwin ,white, [tx-5 ty-20 tx+5 ty+20]);
+            Screen('Flip', mainwin);
+        elseif whichKey == 5
+            whichKey=0;
+            Eyelink('AcceptTrigger');
+        elseif whichKey == 9
+            break;
+        end
+    end;
+    status = Eyelink('OpenFile',abbreviatedFilename);
+    if status
+        error(['openfile error, status: ', num2str(status)]);
+    end
+    Eyelink('StartRecording');
+end
+
+
 %% exp start
+if ~debug
+    Eyelink('Message','session_start');
+end
 for block = 1:nblocks
     colorpair = colorpairs(orderblock(block),:);
     itarget = colorpair(1);
@@ -237,7 +315,7 @@ for block = 1:nblocks
     disp(GetSecs-t1);
     KbStrokeWait;
     
-    for trial = 1:ntrialsperb
+    for trial = 1:ntrialsperb       
         % prepare and wait to start
         t2 = GetSecs;
         ti=targetindex(block,trial);
@@ -252,7 +330,7 @@ for block = 1:nblocks
             Screen('FillRect', buffers(i), white, fixRect);
             for ring=1:nrings
                 for stimIndex=1:stimPerRing
-                    if ~mod(i,10)
+                    if ~mod(i,6)
                         xjit=jpix*(rand*2-1);
                         yjit=(-1)^randi(2)*sqrt(jpix^2-xjit^2);
                         jit(ring,stimIndex,:)=[xjit;yjit;xjit;yjit];
@@ -278,10 +356,51 @@ for block = 1:nblocks
         disp(t2-GetSecs);
         Screen('FillRect', mainwin, white, fixRect);
         Screen('Flip', mainwin);
-        KbStrokeWait;
+        
+        while 1 %wait to start
+            [keyIsDown, ~, keyCode] = KbCheck;
+            FlushEvents('keyDown');
+            if keyIsDown
+                nKeys = sum(keyCode);
+                if nKeys == 1
+                    if keyCode(kesc)
+                        session_end;return
+                    elseif keyCode(kspace)
+                        break;
+                    elseif keyCode(kleftctrl)
+                        % show the mapping again
+                        DrawFormattedText(mainwin, ['Block No.', num2str(block)], 'center','center',white);
+                        Screen('DrawText', mainwin, 'Target', tarpos(1)-20, tarpos(2)-70, white);
+                        Screen('DrawText', mainwin, 'Distractor', dispos(1)-25, dispos(2)-70, white);
+                        % target left
+                        Screen('FillArc', mainwin, targetcolor(1,:), CenterRectOnPoint(ballrect, tarpos(1),tarpos(2)), startAngle(1), arcAngle);
+                        Screen('FillArc', mainwin, targetcolor(2,:), CenterRectOnPoint(ballrect, tarpos(1),tarpos(2)), startAngle(2), arcAngle);
+                        Screen('FillArc', mainwin, targetcolor(3,:), CenterRectOnPoint(ballrect, tarpos(1),tarpos(2)), startAngle(3), arcAngle);
+                        Screen('FillArc', mainwin, targetcolor(4,:), CenterRectOnPoint(ballrect, tarpos(1),tarpos(2)), startAngle(4), arcAngle);
+                        Screen('DrawLine', mainwin, black, tarpos(1) - radius, tarpos(2), tarpos(1) + radius, tarpos(2));
+                        Screen('DrawLine', mainwin, black, tarpos(1), tarpos(2) - radius, tarpos(1), tarpos(2) + radius);
+                        % distractor right
+                        Screen('FillArc', mainwin, discolor(1,:), CenterRectOnPoint(ballrect, dispos(1),dispos(2)), startAngle(1), arcAngle);
+                        Screen('FillArc', mainwin, discolor(2,:), CenterRectOnPoint(ballrect, dispos(1),dispos(2)), startAngle(2), arcAngle);
+                        Screen('FillArc', mainwin, discolor(3,:), CenterRectOnPoint(ballrect, dispos(1),dispos(2)), startAngle(3), arcAngle);
+                        Screen('FillArc', mainwin, discolor(4,:), CenterRectOnPoint(ballrect, dispos(1),dispos(2)), startAngle(4), arcAngle);
+                        Screen('DrawLine', mainwin, black, dispos(1) - radius, dispos(2), dispos(1) + radius, dispos(2));
+                        Screen('DrawLine', mainwin, black, dispos(1), dispos(2) - radius, dispos(1), dispos(2) + radius);
+                        Screen('Flip',mainwin);
+                        KbStrokeWait;
+                        Screen('FillRect', mainwin, white, fixRect);
+                        Screen('Flip', mainwin);
+                    end
+                end
+            end
+        end        
         
         keypressed =NaN;
         rt = NaN;
+        if ~debug
+            Eyelink('Message','trial_start');
+        end
+        
         % show
         Screen('DrawTexture', mainwin, buffers(1));
         Screen('Flip', mainwin);
@@ -305,6 +424,10 @@ for block = 1:nblocks
             Screen('Flip', mainwin);
         end
         
+        if ~debug
+            Eyelink('Message','trial_end');
+        end
+        
         respring = find(ismember(possiblekn,keypressed)) - 1;
         if respring == tring
             cor = 1;
@@ -325,12 +448,12 @@ end
 session_end;
 
     function session_end
-        %         if ~debug
-        %             Eyelink('Message','session_end');
-        %             Eyelink('Stoprecording');
-        %             Eyelink('CloseFile');
-        %             Eyelink('ReceiveFile');
-        %         end
+        if ~debug
+            Eyelink('Message','session_end');
+            Eyelink('Stoprecording');
+            Eyelink('CloseFile');
+            Eyelink('ReceiveFile');
+        end
         fclose(outfile);
         %         ShowCursor;
         sca;
