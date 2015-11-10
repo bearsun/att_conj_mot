@@ -18,14 +18,14 @@ orig_speed = 20;
 
 radius = 40;
 % framerate = 60;
-screenrect = [0 0 1024 768];%[1024, 0, 2048, 768];
+%screenrect = [0 0 1024 768];%[1024, 0, 2048, 768];
 fixrect = [0,0,8,8];
 [ntrialsall, ~, ~, nballs] = size(alltrials);
 ntrials = 120;
 nblocks = 6;
 ntrialsperblock = ntrials/nblocks;
 picktrials = randperm(ntrialsall,ntrials); % randomly picking up trajectories
-trials = alltrials(picktrials,:);
+trials = alltrials(picktrials,:,:,:);
 
 nframes = 432; % for the fastest 600 pix/s condition
 preframes = 60 * 2; % 2s at the beginning of tracking/end of tracking
@@ -39,7 +39,7 @@ prompttime = 2; %2s to response
 clc;
 AssertOpenGL;
 Priority(1);
-sid = 0;
+sid = 1;
 % colors
 red = [255 0 0];
 green = [0 255 0];
@@ -57,10 +57,10 @@ green = [0 255 0];
 % stiyellow = [109 109 22];
 % colors = [stired;stigreen;stiblue;stiyellow];
 % 
-% colorsq = [ones(6,1),perms(2:4)]; % control red color
-% I will only use A B C D first 4 stimuli in the colorsq
-% colorsq = colorsq(1:4,:);
-%cindexes = 1:size(colorsq,1);
+% map = [ones(6,1),perms(2:4)]; % control red color
+% I will only use A B C D first 4 stimuli in the map
+% map = map(1:4,:);
+%cindexes = 1:size(map,1);
 
 % for color from q1 to q4
 startAngle = [0 90 180 270];
@@ -115,15 +115,18 @@ rg=load([pwd,'/subinfo/',subnum,'_info.mat']);
 colors = rg.rg;
 ctargetA = rg.ctargetA;
 ctargetB = rg.ctargetB;
+cdisC = rg.cdisC;
+cdisD = rg.cdisD;
 
 % 50% percent of tracking targets will be Target A, and there is at least
 % one Target A in tracking in each trial
 
-factors = [ctargetA; cdisC; cdisD];
-alltarget = BalanceTrials(ntrials * (ntargets-1), 1, factors);
+map = [ctargetA; cdisC; cdisD; ctargetB; cdisC; cdisD];
+tfactors = 1:3;
+alltarget = BalanceTrials(ntrials * (ntargets-1), 1, tfactors);
 alltarget = alltarget(1:ntrials * (ntargets-1));
 mattarget = reshape(alltarget,[],ntargets-1); % trial X 3 array
-mattarget = [mattarget, repmat(ctargetA,ntrials,1)];
+mattarget = [mattarget, ones(ntrials,1)];
 % permute again
 for i = 1:ntrials
     topermute = mattarget(i,:);
@@ -133,11 +136,11 @@ end
 % same procedure for not tracking balls
 % 50% percent of the non-tracking balls will be Target B, and there is at
 % least one Target B in non-tracking balls every trial
-factors = [ctargetB; cdisC; cdisD];
-alldis = BalanceTrials(ntrials * (nballs - ntargets - 1), 1, factors);
+dfactors = 4:6;
+alldis = BalanceTrials(ntrials * (nballs - ntargets - 1), 1, dfactors);
 alldis = alldis(1:ntrials * (nballs - ntargets - 1));
 matdis = reshape(alldis,[], nballs - ntargets - 1);
-matdis = [matdis, repmat(ctargetB,ntrials,1)];
+matdis = [matdis, ones(ntrials,1)];
 % permute
 for i = 1:ntrials
     topermute = matdis(i,:);
@@ -150,7 +153,7 @@ matall = [mattarget,matdis]; % put together, we get colors for all balls
 pmat = BalanceTrials(ntrials, 1, 1:nballs);
 
 % initialize window
-[mainwin, rect] = Screen('OpenWindow', sid, bgcolor, screenrect);
+[mainwin, rect] = Screen('OpenWindow', sid, bgcolor);
 % background buffer
 buffers = NaN(nframes,1);
 t1 = GetSecs;
@@ -194,7 +197,7 @@ for trial = 1:ntrials
         if f <= preframes
             for b = 1:nballs
                 pos = matpos(f,1:2,b);
-                bcolor = colorsq(ballcolors(b), :);
+                bcolor = map(ballcolors(b), :);
                 fades = (colors(bcolor,:) - ones(4,1) * white) / preframes * (f-1) + ones(4,1) * white;
                 fadeblack = (black-white) / preframes * (f-1) + white;
                 Screen('FillArc', buffers(f), fades(1,:), CenterRectOnPoint(ballrect, pos(1),pos(2)), startAngle(1), arcAngle);
@@ -208,7 +211,7 @@ for trial = 1:ntrials
         elseif f > (nframes-preframes)
             for b = 1:nballs
                 pos = matpos(f,1:2,b);
-                bcolor = colorsq(ballcolors(b), :);
+                bcolor = map(ballcolors(b), :);
                 fades = (colors(bcolor,:) - ones(4,1) * white) / preframes * (nframes-f) + ones(4,1) * white;
                 fadeblack = (black-white) / preframes * (nframes-f) + white;
                 Screen('FillArc', buffers(f), fades(1,:), CenterRectOnPoint(ballrect, pos(1),pos(2)), startAngle(1), arcAngle);
@@ -221,7 +224,7 @@ for trial = 1:ntrials
         else
             for b = 1:nballs
                 pos = matpos(f,1:2,b);
-                bcolor = colorsq(ballcolors(b), :);
+                bcolor = map(ballcolors(b), :);
                 Screen('FillArc', buffers(f), colors(bcolor(1),:), CenterRectOnPoint(ballrect, pos(1),pos(2)), startAngle(1), arcAngle);
                 Screen('FillArc', buffers(f), colors(bcolor(2),:), CenterRectOnPoint(ballrect, pos(1),pos(2)), startAngle(2), arcAngle);
                 Screen('FillArc', buffers(f), colors(bcolor(3),:), CenterRectOnPoint(ballrect, pos(1),pos(2)), startAngle(3), arcAngle);

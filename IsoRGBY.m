@@ -50,7 +50,7 @@ frameRect=CenterRect(frameRect, screenSize);
 Screen('FrameRect',w,fixColor,frameRect);
 Screen('FillRect',w,fixColor,fixRect);
 Screen('Flip',w,[],0);
-kbwait([],2);
+KbWait([],2);
 
 for repeat=1:nRepeats
     red=reds(repeat,:);
@@ -68,7 +68,7 @@ for repeat=1:nRepeats
    newyellows(repeat,:)=yellow;
    newblues(repeat,:)=blue;
 end
-rgby=round(hsv2ptb([mean(newreds(4:10,:),1);mean(newgreens(4:10,:),1),mean(newblues(4:10,:),1),mean(newyellows(4:10,:),1)]));
+rgby=round(hsv2ptb([mean(newreds(3:end,:),1);mean(newgreens(3:end,:),1);mean(newblues(3:end,:),1);mean(newyellows(3:end,:),1)]));
 % save;
 disp('rgby:');
 disp(rgby);
@@ -114,7 +114,7 @@ Screen('CloseAll');
         Screen('FrameRect',w,fixColor,frameRect);
         Screen('FillRect',w,fixColor,fixRect);
         Screen('Flip',w,[],0);
-        kbwait([],2);
+        KbWait([],2);
     end
 
     function ptb=hsv2ptb(hsv)

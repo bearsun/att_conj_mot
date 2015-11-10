@@ -39,7 +39,7 @@ green = [0 255 0];
 nblocks = 8;
 ntrialsperb = 25;
 ntrials = nblocks * ntrialsperb;
-searchtime = 5; % 6s to search
+searchtime = 5; % 5s to search
 nframes = searchtime * 60;
 radius = 40;
 nrings=4;
@@ -123,7 +123,7 @@ targetpair1 = colorsq([2,4],:);
 targetpair2 = colorsq([6,3],:);
 ksession=str2double(session);
 
-if ksession==1&&~exist([pwd,'/subinfo/',subnum,'_rg.mat'],'file')
+if ksession==1&&~exist([pwd,'/subinfo/',subnum,'_info.mat'],'file')
     rg=IsoRGBY;
     colors = rg;
     switch mod(str2double(subnum),4)
@@ -142,7 +142,7 @@ if ksession==1&&~exist([pwd,'/subinfo/',subnum,'_rg.mat'],'file')
         otherwise
             error('wrong subnum or code');
     end
-    save([pwd,'/subinfo/',subnum,'_info.mat'],'rg','ctargetA','ctargetB');
+    save([pwd,'/subinfo/',subnum,'_info.mat'],'rg','ctargetA','ctargetB','cdisC','cdisD');
 else
     rg=load([pwd,'/subinfo/',subnum,'_info.mat']);
     
@@ -311,11 +311,8 @@ if ~debug
 end
 for block = 1:nblocks
     colorpair = colorpairs(orderblock(block),:);
-    itarget = colorpair(1);
-    idis = colorpair(2);
-    targetcolor = colors(colorsq(itarget,:),:);
-    % distractor color is from the rest of 5 colors
-    discolor = colors(colorsq(idis,:),:);
+    targetcolor = colors(colorpair(1:4),:);
+    discolor = colors(colorpair(5:8),:);
     disp('target:');
     disp(targetcolor);
     disp('distractor:');
@@ -343,7 +340,7 @@ for block = 1:nblocks
     disp(GetSecs-t1);
     KbStrokeWait;
     
-    for trial = 1:ntrialsperb       
+    for trial = 1:ntrialsperb
         % prepare and wait to start
         t2 = GetSecs;
         ti=targetindex(block,trial);
