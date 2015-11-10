@@ -28,23 +28,18 @@ green = [0 255 0];
 % stiblue = [103 103 206];
 % stiyellow = [121 121 61];
 % stu .8
-stired = [206 41 41];
-stigreen = [28 139 28];
-stiblue = [51 51 255];
-stiyellow = [109 109 22];
-colors = [stired;stigreen;stiblue;stiyellow];
-
-colorsq = [ones(6,1),perms(2:4)]; % control red color
-% I will only use A B C D first 4 stimuli in the colorsq
-colorsq = colorsq(1:4,:);
-%cindexes = 1:size(colorsq,1);
+% stired = [206 41 41];
+% stigreen = [28 139 28];
+% stiblue = [51 51 255];
+% stiyellow = [109 109 22];
+% colors = [stired;stigreen;stiblue;stiyellow];
 
 
 % parameters
 nblocks = 8;
 ntrialsperb = 25;
 ntrials = nblocks * ntrialsperb;
-searchtime = 6; % 6s to search
+searchtime = 5; % 6s to search
 nframes = searchtime * 60;
 radius = 40;
 nrings=4;
@@ -116,12 +111,45 @@ fprintf(outfile,'%s\t %s\t %s\t %s\t %s\t %s\t %s\t %s\t %s\t %s\t %s\t %s\t \n'
 abbreviatedFilename=[subnum,'_',datestr(now,'mmdd')];
 disp('data_file_opened');
 
-% build matrix for targets and distractors
-% Target A, Target B, Dis C, Dis D
-ctargetA = mod(str2double(subnum)-1, size(colorsq, 1)) + 1;
-ctargetB = mod(str2double(subnum), size(colorsq, 1)) + 1;
-cdisC = mod(str2double(subnum)-3,size(colorsq, 1)) + 1;
-cdisD = mod(str2double(subnum)-2,size(colorsq,1)) + 1;
+
+%% color issue
+colorsq = [ones(6,1),perms(2:4)]; % control red color
+% I will only use 4 stimuli in the colorsq
+% 2 distractors with blue in the opposite side of red
+cdisC = colorsq(1,:);
+cdisD = colorsq(5,:);
+% two pairs of target, need to counterbalanced between subjects
+targetpair1 = colorsq([2,4],:);
+targetpair2 = colorsq([6,3],:);
+ksession=str2double(session);
+
+if ksession==1&&~exist([pwd,'/subinfo/',subnum,'_rg.mat'],'file')
+    rg=IsoRGBY;
+    colors = rg;
+    switch mod(str2double(subnum),4)
+        case 1
+            ctargetA = targetpair1(1,:);
+            ctargetB = targetpair1(2,:);
+        case 2
+            ctargetA = targetpair1(2,:);
+            ctargetB = targetpair1(1,:);
+        case 3
+            ctargetA = targetpair2(1,:);
+            ctargetB = targetpair2(2,:);
+        case 0
+            ctargetA = targetpair2(2,:);
+            ctargetB = targetpair2(1,:);
+        otherwise
+            error('wrong subnum or code');
+    end
+    save([pwd,'/subinfo/',subnum,'_info.mat'],'rg','ctargetA','ctargetB');
+else
+    rg=load([pwd,'/subinfo/',subnum,'_info.mat']);
+    
+    colors = rg.rg;
+    ctargetA = rg.ctargetA;
+    ctargetB = rg.ctargetB;
+end
 
 %% four kind of trials:
 % 1:Target A, Dis C

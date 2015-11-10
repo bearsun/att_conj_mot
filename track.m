@@ -46,15 +46,15 @@ green = [0 255 0];
 % stiblue = [103 103 206];
 % stiyellow = [121 121 61];
 % stu .8
-stired = [206 41 41];
-stigreen = [28 139 28];
-stiblue = [51 51 255];
-stiyellow = [109 109 22];
-colors = [stired;stigreen;stiblue;stiyellow];
-
-colorsq = [ones(6,1),perms(2:4)]; % control red color
+% stired = [206 41 41];
+% stigreen = [28 139 28];
+% stiblue = [51 51 255];
+% stiyellow = [109 109 22];
+% colors = [stired;stigreen;stiblue;stiyellow];
+% 
+% colorsq = [ones(6,1),perms(2:4)]; % control red color
 % I will only use A B C D first 4 stimuli in the colorsq
-colorsq = colorsq(1:4,:);
+% colorsq = colorsq(1:4,:);
 %cindexes = 1:size(colorsq,1);
 
 % for color from q1 to q4
@@ -104,13 +104,12 @@ fprintf(outfile,'%s\t %s\t %s\t %s\t %s\t %s\t %s\t %s\t %s\t %s\t %s\t %s\t %s\
     'ball1','ball2', 'ball3', 'ball4','ball5', 'ball6', 'ball7', 'ball8', 'targets','prompt','cor','rt');
 % abbreviatedFilename=[subnum,'_',datestr(now,'mmdd')];
 
+%% color issue
+rg=load([pwd,'/subinfo/',subnum,'_info.mat']);
 
-% build matrix for targets and distractors
-% Target A, Target B, Dis C, Dis D
-ctargetA = mod(str2double(subnum)-1, size(colorsq, 1)) + 1;
-ctargetB = mod(str2double(subnum), size(colorsq, 1)) + 1;
-cdisC = mod(str2double(subnum)-3,size(colorsq, 1)) + 1;
-cdisD = mod(str2double(subnum)-2,size(colorsq,1)) + 1;
+colors = rg.rg;
+ctargetA = rg.ctargetA;
+ctargetB = rg.ctargetB;
 
 % 50% percent of tracking targets will be Target A, and there is at least
 % one Target A in tracking in each trial

@@ -21,17 +21,17 @@ pos(:,6,1) = center(1) + 300;
 
 colorsq = perms(1:4);
 
-red = [255 0 0];
-green = [0 255 0];
-blue = [0 0 255];
-yellow = [255 255 0];
-colors = [red;green;blue;yellow];
+% red = [255 0 0];
+% green = [0 255 0];
+% blue = [0 0 255];
+% yellow = [255 255 0];
+% colors = [red;green;blue;yellow];
 
-% stired = [206 41 41];
-% stigreen = [28 139 28];
-% stiblue = [51 51 255];
-% stiyellow = [109 109 22];
-% colors = [stired;stigreen;stiblue;stiyellow];
+stired = [206 41 41];
+stigreen = [28 139 28];
+stiblue = [51 51 255];
+stiyellow = [109 109 22];
+colors = [stired;stigreen;stiblue;stiyellow];
 
 mainwin=Screen('OpenWindow', 0, [128,128,128], rect);
 
