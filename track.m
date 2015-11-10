@@ -2,8 +2,9 @@ function track
 % test trial by trial
 % ntrials = 72; 120?
 
+rng('shuffle');
 preload = load('test_i20.mat');
-trials = preload.newtrials;
+alltrials = preload.newtrials;
 
 speed_min = 200;
 speed_max = 600;
@@ -19,9 +20,14 @@ radius = 40;
 % framerate = 60;
 screenrect = [0 0 1024 768];%[1024, 0, 2048, 768];
 fixrect = [0,0,8,8];
-[ntrials, ~, ~, nballs] = size(trials);
+[ntrialsall, ~, ~, nballs] = size(alltrials);
+ntrials = 120;
+nblocks = 6;
+ntrialsperblock = ntrials/nblocks;
+picktrials = randperm(ntrialsall);
+trials = alltrials(picktrials(1:ntrials),:);
+
 nframes = 432; % for the fastest 600 pix/s condition
-ntrialsperblock = 18;
 preframes = 60 * 2; % 2s at the beginning of tracking/end of tracking
 ntargets = 4;
 nblinks = 6;
@@ -33,7 +39,6 @@ prompttime = 2; %2s to response
 clc;
 AssertOpenGL;
 Priority(1);
-rng('shuffle');
 sid = 0;
 % colors
 red = [255 0 0];

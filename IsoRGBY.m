@@ -70,7 +70,7 @@ for repeat=1:nRepeats
 end
 rgby=round(hsv2ptb([mean(newreds(4:10,:),1);mean(newgreens(4:10,:),1),mean(newblues(4:10,:),1),mean(newyellows(4:10,:),1)]));
 % save;
-disp('rg:');%by:');
+disp('rgby:');
 disp(rgby);
 Screen('CloseAll');
 
