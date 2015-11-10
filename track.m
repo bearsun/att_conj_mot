@@ -24,8 +24,8 @@ fixrect = [0,0,8,8];
 ntrials = 120;
 nblocks = 6;
 ntrialsperblock = ntrials/nblocks;
-picktrials = randperm(ntrialsall);
-trials = alltrials(picktrials(1:ntrials),:);
+picktrials = randperm(ntrialsall,ntrials); % randomly picking up trajectories
+trials = alltrials(picktrials,:);
 
 nframes = 432; % for the fastest 600 pix/s condition
 preframes = 60 * 2; % 2s at the beginning of tracking/end of tracking
