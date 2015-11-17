@@ -5,7 +5,7 @@ monitor=1; %primary monitor for display
 rightKey = KbName('right');
 leftKey = KbName('left');
 upKey = KbName('up');
-nRepeats=10;
+nRepeats=5;
 maxRGB=255;
 
 incrementI=0.01;%increment for manipulating I
@@ -68,7 +68,7 @@ for repeat=1:nRepeats
    newyellows(repeat,:)=yellow;
    newblues(repeat,:)=blue;
 end
-rgby=round(hsv2ptb([mean(newreds(3:end,:),1);mean(newgreens(3:end,:),1);mean(newblues(3:end,:),1);mean(newyellows(3:end,:),1)]));
+rgby=round(hsv2ptb([mean(newreds(2:end,:),1);mean(newgreens(2:end,:),1);mean(newblues(2:end,:),1);mean(newyellows(2:end,:),1)]));
 % save;
 disp('rgby:');
 disp(rgby);

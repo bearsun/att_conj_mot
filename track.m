@@ -1,9 +1,9 @@
-function track
+function track(debug)
 % test trial by trial
 % ntrials = 72; 120?
 
 rng('shuffle');
-preload = load('test_i20.mat');
+preload = load('test_i20_500.mat');
 alltrials = preload.newtrials;
 
 speed_min = 200;
@@ -32,7 +32,7 @@ preframes = 60 * 2; % 2s at the beginning of tracking/end of tracking
 ntargets = 4;
 nblinks = 6;
 blinktime = .3;
-prompttime = 2; %2s to response
+prompttime = 4; %4s to response
 %pertarget = .5; % 50% target % inherent in code
 
 % initialize everything
@@ -77,6 +77,9 @@ bgcolor = black;
 
 
 kesc = KbName('Escape');
+kspace = KbName('space');
+kreturn = KbName('Return');
+kback = KbName('BackSpace');
 kn9 = KbName('9');
 kn0 = KbName('0');
 possiblekn = [kn9; kn0];
@@ -104,10 +107,10 @@ if exist(outputname,'file')==2&&(str2double(subnum)~=99)
     end
 end
 outfile = fopen(outputname,'w');
-fprintf(outfile,'%s\t %s\t %s\t %s\t %s\t %s\t %s\t %s\t %s\t %s\t %s\t %s\t %s\t %s\t %s\t %s\t %s\t %s\t %s\t %s\t %s\t \n', ...
+fprintf(outfile,'%s\t %s\t %s\t %s\t %s\t %s\t %s\t %s\t %s\t %s\t %s\t %s\t %s\t %s\t %s\t %s\t %s\t %s\t %s\t %s\t %s\t %s\t \n', ...
     'subnum', 'subage', 'gender', 'group', 'session', 'block', 'trial', 'answer', 'keypressed', ...
-    'ball1','ball2', 'ball3', 'ball4','ball5', 'ball6', 'ball7', 'ball8', 'targets','prompt','cor','rt');
-% abbreviatedFilename=[subnum,'_',datestr(now,'mmdd')];
+    'ball1','ball2', 'ball3', 'ball4','ball5', 'ball6', 'ball7', 'ball8', 'targets','prompt','cor','rt', 'speed');
+abbreviatedFilename=[subnum,'_',datestr(now,'mmdd')];
 
 %% color issue
 rg=load([pwd,'/subinfo/',subnum,'_info.mat']);
@@ -140,7 +143,7 @@ dfactors = 4:6;
 alldis = BalanceTrials(ntrials * (nballs - ntargets - 1), 1, dfactors);
 alldis = alldis(1:ntrials * (nballs - ntargets - 1));
 matdis = reshape(alldis,[], nballs - ntargets - 1);
-matdis = [matdis, ones(ntrials,1)];
+matdis = [matdis, 4*ones(ntrials,1)];
 % permute
 for i = 1:ntrials
     topermute = matdis(i,:);
@@ -166,6 +169,79 @@ end
 
 disp(GetSecs - t1);
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Calibration
+if ~debug
+    Eyelink('Shutdown');
+    Eyelink('Initialize');
+    HideCursor;
+    Screen('Fillrect', mainwin, black)
+    Screen('Flip',mainwin);
+    
+    Eyelink('StartSetup')
+    pause(2)
+    
+    
+    whichKey=0;
+    
+    keysWanted=[kspace kreturn kback];
+    FlushEvents('KeyDown');
+    while 1
+        pressed = 0;
+        while pressed == 0
+            [pressed, ~, kbData] = KbCheck;
+        end;
+        
+        for keysToCheck = 1:length(keysWanted)
+            if kbData(keysWanted(keysToCheck)) == 1
+                
+                keyPressed = keysWanted(keysToCheck);
+                if keyPressed == kback
+                    whichKey=9;
+                    FlushEvents('KeyDown');
+                    WaitSecs(.1)
+                elseif keyPressed == kspace
+                    whichKey=1;
+                    FlushEvents('KeyDown');
+                    WaitSecs(.1)
+                elseif keyPressed == kreturn
+                    whichKey=5;
+                    FlushEvents('KeyDown');
+                    WaitSecs(.1)
+                else
+                end
+                FlushEvents('KeyDown');
+                
+            end;
+        end;
+        
+        if whichKey == 1
+            whichKey=0;
+            [~, tx, ty] = Eyelink('TargetCheck');
+            tx=tx*.64;
+            ty=ty*.64;
+            Screen('FillRect', mainwin ,white, [tx-20 ty-5 tx+20 ty+5]);
+            Screen('FillRect', mainwin ,white, [tx-5 ty-20 tx+5 ty+20]);
+            Screen('Flip', mainwin);
+        elseif whichKey == 5
+            whichKey=0;
+            Eyelink('AcceptTrigger');
+        elseif whichKey == 9
+            break;
+        end
+    end;
+    status = Eyelink('OpenFile',abbreviatedFilename);
+    if status
+        error(['openfile error, status: ', num2str(status)]);
+    end
+    Eyelink('StartRecording');
+end
+
+
+%% exp start
+if ~debug
+    Eyelink('Message','session_start');
+end
 block = 1;
 nr = 0;
 speed = initial_speed;
@@ -175,13 +251,13 @@ last_cor = NaN;
 ncor = 0; nup = 6;% here we use a 6-up/1-down rule for speed staircase
 for trial = 1:ntrials
     
-    %     if mod(trial,ntrialsperblock) == 1
-    %         block = num2str(ceil(trial/ntrialsperblock));
-    %         DrawFormattedText(mainwin, ['Block No.',block , ...
-    %             ',\n Please feel free to take a break.\n'], 'center', 'center', black);
-    %         Screen('Flip', mainwin);
-    %         KbStrokeWait;
-    %     end
+    if mod(trial,ntrialsperblock) == 1
+        block = num2str(ceil(trial/ntrialsperblock));
+        DrawFormattedText(mainwin, ['Block No.',block , ...
+            ',\n Please feel free to take a break.\n'], 'center', 'center', white);
+        Screen('Flip', mainwin);
+        KbStrokeWait;
+    end
     disp([trial,speed,speed_step]);
     % prepare position matrix for this trial
     rate = speed/orig_speed;
@@ -267,6 +343,10 @@ for trial = 1:ntrials
     Screen('Flip', mainwin);
     KbStrokeWait;
     
+    if ~debug
+        Eyelink('Message','trial_start');
+    end
+    
     % blink the targets
     for k = 1:nblinks
         if mod(k,2)
@@ -284,6 +364,10 @@ for trial = 1:ntrials
         Screen('Flip', mainwin);
     end
     
+    
+    if ~debug
+        Eyelink('Message','trial_end');
+    end
     % prompt for response
     Screen('DrawTexture', mainwin, pbuffer);
     Screen('Flip', mainwin);
@@ -311,6 +395,9 @@ for trial = 1:ntrials
         end
     end
     
+    if ~debug
+        Eyelink('Message','resp_end');
+    end
     targets = itarget(1)*1000+itarget(2)*100+itarget(3)*10 + itarget(4);
     answer = ismember(ptarget, itarget);
     
@@ -324,10 +411,10 @@ for trial = 1:ntrials
         cor = (answer == resp);
     end
     
-    fprintf(outfile,'%s\t %s\t %s\t %s\t %s\t %d\t %d\t %d\t %d\t %d\t %d\t %d\t %d\t %d\t %d\t %d\t %d\t %d\t %d\t %d\t %d\t \n', ...
+    fprintf(outfile,'%s\t %s\t %s\t %s\t %s\t %s\t %d\t %d\t %d\t %d\t %d\t %d\t %d\t %d\t %d\t %d\t %d\t %d\t %d\t %d\t %d\t %d\t \n', ...
         subnum, subage, gender, group, session, block, trial, answer, keypressed, ...
         matall(trial,1),  matall(trial,2),  matall(trial,3),  matall(trial,4),  matall(trial,5),  matall(trial,6),...
-        matall(trial,7),  matall(trial,8), targets, ptarget,cor,rt);
+        matall(trial,7),  matall(trial,8), targets, ptarget,cor,rt,speed);
     
     % adjust speed_step
     if ~isnan(last_cor) && last_cor ~= cor
@@ -370,12 +457,12 @@ end
 session_end;
 
     function session_end
-        %         if ~debug
-        %             Eyelink('Message','session_end');
-        %             Eyelink('Stoprecording');
-        %             Eyelink('CloseFile');
-        %             Eyelink('ReceiveFile');
-        %         end
+        if ~debug
+            Eyelink('Message','session_end');
+            Eyelink('Stoprecording');
+            Eyelink('CloseFile');
+            Eyelink('ReceiveFile');
+        end
         fclose(outfile);
         %         ShowCursor;
         sca;
