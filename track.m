@@ -1,7 +1,8 @@
 function track(debug)
 % test trial by trial
 % ntrials = 72; 120?
-
+b = system('xrandr --screen 1 --output CRT2 --mode 1024x768 --rate 60');
+disp(b);
 rng('shuffle');
 preload = load('test_i20_500.mat');
 alltrials = preload.newtrials;

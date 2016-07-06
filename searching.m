@@ -4,6 +4,8 @@ function searching(debug)
 
 %% initialize everything
 clc;
+b = system('xrandr --screen 1 --output CRT2 --mode 1024x768 --rate 60');
+
 global ptb_RootPath %#ok<NUSED>
 %AssertOpenGL;
 %Priority(1);
@@ -72,7 +74,7 @@ possiblekn = [kn0; kn1; kn2; kn3; kn4];
 disp('parameters_initiated');
 
 %% random target position with no repeat
-targetoptions=[1:nballs,zeros(1,stimPerRing)]; %catch trials 25%, each ring 25%
+targetoptions=[1:nballs,zeros(1,stimPerRing)]; %catch trials 20%, each ring 20%
 repeat=1;
 while repeat
     targetindex=BalanceTrials(ntrials,1,targetoptions);
